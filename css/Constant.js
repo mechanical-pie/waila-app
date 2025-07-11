@@ -3,8 +3,8 @@ import {Dimensions, Platform, StyleSheet} from "react-native";
 const { width, height } = Dimensions.get('window');
 
 const getPaddingHorizontal = () => {
-    if (width <= 360) return 15;
-    return 20;
+    if (width <= 360) return 20;
+    return 30;
 };
 
 const getGapVertical = () => {
@@ -28,7 +28,7 @@ const globalStyles = StyleSheet.create({
         height: '100%',
         paddingHorizontal: getPaddingHorizontal(),
         paddingTop: 30,
-        paddingBottom: 60,
+        paddingBottom: 30,
     },
     blockContent: {
         gap: getGapVertical(),
