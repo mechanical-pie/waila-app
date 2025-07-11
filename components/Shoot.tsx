@@ -1,22 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {StyleSheet, Text, View, Image, Dimensions, Pressable, Animated} from 'react-native';
+import {Text, View, Image, Dimensions, Pressable, Animated} from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import FlashIconOff from "@/components/Icons/FlashIconOff";
 import FlashIconOn from "@/components/Icons/FlashIconOn";
-import { useNavigation } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
-
-const { width, height } = Dimensions.get('window');
-
-const getPadding = () => {
-    if (width <= 360) return 20;
-    return 30;
-};
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import AskRetakeButtons from "@/components/AskRetakeButtons";
+import ClosePhotoIcon from "@/components/Icons/ClosePhotoIcon";
+import styles from '@/css/Shoot';
+import AskIcon from "@/components/Icons/AskIcon";
 
 export default function Shoot() {
     const navigation = useNavigation();
-
     const [isActive, setIsActive] = useState(true);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const [hasMediaPermission, setHasMediaPermission] = useState<boolean | null>(null);
@@ -26,6 +21,7 @@ export default function Shoot() {
     const [showSavedNotification, setShowSavedNotification] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const cameraRef = useRef<CameraView>(null);
+    const [showRecorder, setShowRecorder] = useState(false); // Новое состояние для показа записи
 
     useEffect(() => {
         (async () => {
@@ -72,10 +68,13 @@ export default function Shoot() {
             try {
                 await MediaLibrary.saveToLibraryAsync(photo);
                 showNotification();
+                return true;
             } catch (error) {
                 console.log('Ошибка при сохранении фото:', error);
+                return false;
             }
         }
+        return false;
     };
 
     const toggleCameraType = () => {
@@ -88,7 +87,6 @@ export default function Shoot() {
 
     const handlePress = () => {
         navigation.goBack();
-        setIsActive(false);
     };
 
     useFocusEffect(
@@ -100,204 +98,94 @@ export default function Shoot() {
         }, [])
     );
 
+    const handleRetake = () => {
+        setPhoto(null);
+        setShowRecorder(false); // Сбрасываем показ записи при пересъемке
+    };
+
+    const handleAskPress = async () => {
+        const saved = await savePhotoToGallery();
+        if (saved) {
+            setShowRecorder(true); // Показываем блок записи после сохранения
+        }
+    };
+
+    const handleBackFromRecorder = () => {
+        setShowRecorder(false); // Скрываем блок записи
+    };
+
     if (hasCameraPermission === false) {
-        return <Text>Нет доступа к камере</Text>;
+        return <Text>No camera access</Text>;
     }
 
     return (
-        <View style={styles.container}>
+        <View style={{ flex: 1 }}>
             {!photo ? (
                 isActive ? (
-                    <CameraView
-                        style={styles.camera}
-                        facing={facing}
-                        flash={flash}
-                        ref={cameraRef}
-                    >
-                        <View style={styles.buttonContainer}>
-                            <Pressable style={styles.backButton} onPress={handlePress}>
-                                <Text style={styles.backButtonText}>Back</Text>
-                            </Pressable>
-                            <Pressable style={styles.captureButton} onPress={takePicture}>
-                                <View style={styles.smallCaptureButton}></View>
-                            </Pressable>
-                            <Pressable style={styles.flashButton} onPress={toggleFlash}>
-                                {flash === 'off' ? <FlashIconOff /> : <FlashIconOn />}
-                            </Pressable>
-                            <Pressable style={styles.flipButton} onPress={toggleCameraType}>
-                                <Text style={styles.flipButtonText}>Switch</Text>
-                            </Pressable>
-                        </View>
-                    </CameraView>
+                    <View style={styles.container}>
+                        <CameraView
+                            style={styles.camera}
+                            facing={facing}
+                            flash={flash}
+                            ref={cameraRef}
+                        >
+                            <View style={styles.buttonContainer}>
+                                <Pressable style={styles.backButton} onPress={handlePress}>
+                                    <Text style={styles.backButtonText}>Back</Text>
+                                </Pressable>
+                                <Pressable style={styles.captureButton} onPress={takePicture}>
+                                    <View style={styles.smallCaptureButton}></View>
+                                </Pressable>
+                                <Pressable style={styles.flashButton} onPress={toggleFlash}>
+                                    {flash === 'off' ? <FlashIconOff /> : <FlashIconOn />}
+                                </Pressable>
+                                <Pressable style={styles.flipButton} onPress={toggleCameraType}>
+                                    <Text style={styles.flipButtonText}>Switch</Text>
+                                </Pressable>
+                            </View>
+                        </CameraView>
+                    </View>
                 ) : null
             ) : (
                 <View style={{ flex: 1 }}>
-                    <Image source={{ uri: photo }} style={styles.camera} />
+                    <View style={styles.headerBlock}>
+                        <Text style={styles.headerBlockText}>Image from camera</Text>
+                        <Pressable onPress={handleRetake}>
+                            <ClosePhotoIcon />
+                        </Pressable>
+                    </View>
+                    <View style={styles.photoContainer}>
+                        <Image source={{ uri: photo }} style={styles.camera} resizeMode='cover'/>
+                    </View>
+
+                    {!showRecorder && (
+                        <View style={styles.buttonContainerItem}>
+                            <Pressable
+                                style={styles.saveButton}
+                                onPress={handleAskPress}
+                            >
+                                <AskIcon />
+                                <Text style={styles.saveButtonText}>Ask</Text>
+                            </Pressable>
+                        </View>
+                    )}
+
                     <View style={styles.photoControls}>
-                        <Pressable
-                            style={styles.newpPhotoButton}
-                            onPress={() => setPhoto(null)}
-                        >
-                            <Text style={styles.newpPhotoButtonText}>Take again</Text>
-                        </Pressable>
-                        <Pressable
-                            style={styles.newpPhotoButton}
-                            onPress={savePhotoToGallery}
-                        >
-                            <Text style={styles.newpPhotoButtonText}>Save</Text>
-                        </Pressable>
+                        <AskRetakeButtons
+                            onRetake={handleRetake}
+                            onSave={savePhotoToGallery}
+                            showRecorder={showRecorder}
+                            onBackFromRecorder={handleBackFromRecorder}
+                        />
                     </View>
                 </View>
             )}
 
             {showSavedNotification && (
                 <Animated.View style={[styles.notification, { opacity: fadeAnim }]}>
-                    <Text style={styles.notificationText}>Фото сохранено</Text>
+                    <Text style={styles.notificationText}>Photo saved</Text>
                 </Animated.View>
             )}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000',
-        position: 'relative',
-    },
-    camera: {
-        flex: 1,
-    },
-    buttonContainer: {
-        flex: 1,
-        backgroundColor: 'transparent',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        marginTop: getPadding(),
-        marginBottom: 30,
-        marginHorizontal: getPadding(),
-    },
-    flipButton: {
-        width: 83,
-        height: 50,
-        borderBottomRightRadius: 10,
-        borderBottomLeftRadius: 10,
-        borderTopRightRadius: 10,
-        borderTopLeftRadius: 10,
-        backgroundColor: '#83AB43',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    flashButton: {
-        width: 83,
-        height: 50,
-        borderBottomRightRadius: 10,
-        borderBottomLeftRadius: 10,
-        borderTopRightRadius: 10,
-        borderTopLeftRadius: 10,
-        backgroundColor: '#83AB43',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'absolute',
-        left: 0,
-        top: 0
-    },
-    flashButtonText: {
-        fontFamily: 'Staatliches',
-        fontWeight: '400',
-        fontSize: 24,
-        lineHeight: 30,
-        color: '#FFFFFF'
-    },
-    flipButtonText: {
-        fontFamily: 'Staatliches',
-        fontWeight: '400',
-        fontSize: 24,
-        lineHeight: 30,
-        color: '#FFFFFF'
-    },
-    backButton: {
-        width: 83,
-        height: 50,
-        borderBottomRightRadius: 10,
-        borderBottomLeftRadius: 10,
-        borderTopRightRadius: 10,
-        borderTopLeftRadius: 10,
-        backgroundColor: '#83AB43',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    backButtonText: {
-        fontFamily: 'Staatliches',
-        fontWeight: '400',
-        fontSize: 24,
-        lineHeight: 30,
-        color: '#FFFFFF'
-    },
-    captureButton: {
-        width: 62,
-        height: 62,
-        borderRadius: 31,
-        borderWidth: 5,
-        borderColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    smallCaptureButton: {
-        width: 38,
-        height: 38,
-        borderRadius: 19,
-        backgroundColor: '#ffffff'
-    },
-    photoControls: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        position: 'absolute',
-        left: 0,
-        bottom: 30,
-        paddingHorizontal: getPadding(),
-    },
-    newpPhotoButton: {
-        width: 114,
-        height: 50,
-        borderBottomRightRadius: 10,
-        borderBottomLeftRadius: 10,
-        borderTopRightRadius: 10,
-        borderTopLeftRadius: 10,
-        backgroundColor: '#83AB43',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    newpPhotoButtonText: {
-        fontFamily: 'Staatliches',
-        fontWeight: '400',
-        fontSize: 24,
-        lineHeight: 30,
-        color: '#FFFFFF'
-    },
-    notification: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: [{ translateX: -100 }, { translateY: -25 }],
-        width: 200,
-        height: 50,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    notificationText: {
-        fontFamily: 'Roboto',
-        fontWeight: '400',
-        fontSize: 24,
-        lineHeight: 30,
-        color: '#FFFFFF'
-    },
-});

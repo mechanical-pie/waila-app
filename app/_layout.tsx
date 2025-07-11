@@ -13,6 +13,9 @@ import Profile from "@/components/Profile";
 import Legal from "@/components/Legal";
 import Pinned from "@/components/Pinned";
 import PlanUpgrade from "@/components/PlanUpgrade";
+import PrivacyPolicy from "@/components/PrivacyPolicy";
+import Terms from "@/components/Terms";
+import { FavouritesProvider } from '@/plugins/FavouritesContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -53,66 +56,82 @@ export default function RootLayout() {
     }
 
     return (
-        <View style={{ height: '100%' }}>
-            <Stack.Navigator
-                initialRouteName="Loader"
-                screenOptions={{
-                    animation: 'fade',
-                    headerShown: false,
-                    contentStyle: { backgroundColor: '#ffffff' },
-                }}
-            >
-                <Stack.Screen name="Loader" component={Loader} />
-                <Stack.Screen name="History">
-                    {() => (
-                        <Layout title="History Log">
-                            <History />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-                <Stack.Screen name="Shoot">
-                    {() => (
-                        <Layout title="Shoot">
-                            <Shoot />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-                <Stack.Screen name="Single" >
-                    {() => (
-                        <Layout title="Single">
-                            <Single />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-                <Stack.Screen name="Profile" >
-                    {() => (
-                        <Layout title="Profile">
-                            <Profile />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-                <Stack.Screen name="Legal" >
-                    {() => (
-                        <Layout title="Legal">
-                            <Legal />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-                <Stack.Screen name="Pinned" >
-                    {() => (
-                        <Layout title="Pinned">
-                            <Pinned />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-                <Stack.Screen name="PlanUpgrade" >
-                    {() => (
-                        <Layout title="Plan Upgrade">
-                            <PlanUpgrade />
-                        </Layout>
-                    )}
-                </Stack.Screen>
-            </Stack.Navigator>
-        </View>
+        <FavouritesProvider>
+            <View style={{ height: '100%' }}>
+                <Stack.Navigator
+                    initialRouteName="Loader"
+                    screenOptions={{
+                        animation: 'fade',
+                        headerShown: false,
+                        contentStyle: { backgroundColor: '#ffffff' },
+                    }}
+                >
+                    <Stack.Screen name="Loader" component={Loader} />
+                    <Stack.Screen name="History">
+                        {() => (
+                            <Layout title="History Log">
+                                <History />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="Shoot">
+                        {() => (
+                            <Layout title="Shoot">
+                                <Shoot />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="Single" >
+                        {() => (
+                            <Layout title="Single">
+                                <Single />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="Profile" >
+                        {() => (
+                            <Layout title="Profile">
+                                <Profile />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="Legal" >
+                        {() => (
+                            <Layout title="Legal">
+                                <Legal />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="Pinned" >
+                        {() => (
+                            <Layout title="Pinned">
+                                <Pinned />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="PlanUpgrade" >
+                        {() => (
+                            <Layout title="Plan Upgrade">
+                                <PlanUpgrade />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="PrivacyPolicy" >
+                        {() => (
+                            <Layout title="Privacy Policy">
+                                <PrivacyPolicy />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                    <Stack.Screen name="Terms" >
+                        {() => (
+                            <Layout title="Terms And Conditions">
+                                <Terms />
+                            </Layout>
+                        )}
+                    </Stack.Screen>
+                </Stack.Navigator>
+            </View>
+        </FavouritesProvider>
     );
 }
